@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include"bhHeaders.h"
+
 /*
     Construct tree (top down) by counting N particles in each node and checking if its a twig 
     (N>2) or a leaf (N=1). Empty nodes are ignored.
@@ -32,6 +33,7 @@ int count(struct quad* nd, struct body* bodies, int* N_PARTICLES, int* track){
         // printf("Out of the recursion\n");  
         return 0;
     }
+    
     // printf("Number is: %i\n", number);
 
     if(number==1){
@@ -49,7 +51,7 @@ int count(struct quad* nd, struct body* bodies, int* N_PARTICLES, int* track){
             struct point p = {.x = centre_x, .y= centre_y};
             newBody(nd, p, centre_mass,  total_charge); //Assign pseudoboy
             // free(pseudobody);
-            // printf("Pseudobody [%f,%f] at %i\n", centre_x,centre_y, nd->data);
+            printf("Pseudobody [%f,%f] at %i\n", centre_x,centre_y, nd->data);
         
             subdivide(nd, track);
             }

@@ -58,6 +58,7 @@ void levelorder(struct quad* n);
 double mag(double* d);
 void difference(struct point* p1, struct point* p2, double *d);
 void force_summation(struct quad* nd, struct body* bodies, struct point* Forces, int* N_PARTICLES);
+void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES);
 
 void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t);
 void printdata(struct quad* nd, FILE* f);

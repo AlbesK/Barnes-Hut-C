@@ -44,7 +44,7 @@ int main() {
             struct body b = {.mass = mass, .charge = charge, .pos = p };
             Forces[i].x = 0; Forces[i].y = 0;
             bodies[i] = b;
-            // printf("%d: %c:[%f], %c:[%f] \n",i, x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
+            printf("%d: %c:[%f], %c:[%f] \n",i, x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
     
     }
 
@@ -58,8 +58,9 @@ int main() {
     double t = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     printf("Checking queue\n");
     levelorder(root);
+    levelorder_force(root, bodies, Forces, &N_PARTICLES);
     // display_tree(root);
-    force_summation(root,bodies, Forces, &N_PARTICLES);
+    // force_summation(root,bodies, Forces, &N_PARTICLES);
     // check(root);
     char c;
     printf("Do you want to save the data? Y/n \n");

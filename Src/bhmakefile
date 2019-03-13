@@ -1,5 +1,5 @@
 # files needed to be compiled
-SRC = newNode.c newBody.c display_tree.c deconstruct_tree.c subdivide.c contains.c insert.c count.c search.c levelorder.c mag.c difference.c force_summation.c xyt_data_particles.c xy_trees.c printdata.c enqueue.c dequeue.c queue_empty.c bhtd.c
+SRC = newNode.c newBody.c display_tree.c deconstruct_tree.c subdivide.c contains.c insert.c count.c search.c levelorder.c mag.c difference.c force_summation.c xyt_data_particles.c xy_trees.c printdata.c enqueue.c dequeue.c queue_empty.c levelorder_force.c bhtd.c
 
 # compilation options
 CC = gcc -g
@@ -21,7 +21,7 @@ clean :
 	rm -f ${OBJ} ${BIN}
 
 # Some dependencies
-bhtd.o : newNode.o newBody.o display_tree.o deconstruct_tree.o subdivide.o contains.o insert.o count.o search.o levelorder.o mag.o difference.o force_summation.o xyt_data_particles.o xy_trees.o bhHeaders.h
+bhtd.o : newNode.o newBody.o display_tree.o deconstruct_tree.o subdivide.o contains.o insert.o count.o search.o levelorder.o mag.o difference.o force_summation.o xyt_data_particles.o xy_trees.o levelorder_force.o bhHeaders.h
 
 newNode.o : bhHeaders.h
 newBody.o : bhHeaders.h
@@ -42,4 +42,5 @@ enqueue.o : bhHeaders.h
 dequeue.o : bhHeaders.h
 queue_empty.o : bhHeaders.h
 printdata.o : bhHeaders.h
+levelorder_force.o : bhHeaders.h
 
