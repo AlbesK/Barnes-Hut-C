@@ -129,15 +129,26 @@ void subdivide(struct quad* nd, int* track){
         return;
     }
     // printf("Subdivide call at: %i \n", nd->data);
-
-    // 
     // Call newNode function for each child node that was Null of the node at hand and assign a memory block of size (struct quad)
-    // -1 is assigned here if the node is a 'twig' meaning it is not a 'leaf' for now empty cells are also -1.
-    //                                                                                         _________________
-    nd->NE = newNode(*track-1, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y + nd->s/4); //   |  (NW)  |  (NE)  |
-    nd->SE = newNode(*track-2, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y - nd->s/4); //   |___-+___|___++___|
-    nd->SW = newNode(*track-3, nd->s/2, nd->centre.x - nd->s/4, nd->centre.y - nd->s/4); //   |   --   |   +-   |
-    nd->NW = newNode(*track-4, nd->s/2, nd->centre.x - nd->s/4, nd->centre.y + nd->s/4); //   |__(SW)__|__(SE)__|
+    // -n is assigned here if the node is a 'twig' meaning it is not a 'leaf' for now empty cells are also -n where n integers that
+    // that are unique for each quad.
+    //    _____________________
+    //   |          |          |
+    //   |   (NW)   |   (NE)   |
+    //   |          |          |
+    //   |    -+    |    ++    |
+    //   |__________|__________|
+    //   |          |          |
+    //   |    --    |    +-    |
+    //   |          |          |
+    //   |   (SW)   |   (SE)   |
+    //   |__________|__________|
+
+    nd->NE = newNode(*track-1, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y + nd->s/4); 
+    nd->SE = newNode(*track-2, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y - nd->s/4); 
+    nd->SW = newNode(*track-3, nd->s/2, nd->centre.x - nd->s/4, nd->centre.y - nd->s/4); 
+    nd->NW = newNode(*track-4, nd->s/2, nd->centre.x - nd->s/4, nd->centre.y + nd->s/4); 
+    
       
     nd->divided = true; // The node subdivided ( safety for not subdividing again the same node )
     *track = *track-4;
@@ -168,35 +179,33 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
         return 0; // Not found yet so return 0 and go in the function again
     } 
 
-    if(index==0){ // If root, subdive
-        subdivide(nd, track);
-    }
-
     if(nd->b==NULL){ // If there is no pointer to body assign it (Essentially capacity is kept at 1 here with this method)
         nd->b = b;
         nd->data = *index; //Assign the number of the body from the Bodies array, this is for getting back with data where the body is stored as a leaf
         // printf("Pointer to %i\n", nd->data);
-        // return 1; // Found so return 1 so we can exit the recursion
+        return 0; // Found so return 1 so we can exit the recursion
     } 
     else{
     
         if(nd->divided!=true){ // Check if the quad quad has subdivided
             subdivide(nd, track); // If not, subdivide!
+            // Check where to put nodes body and then after the if statement check for the current index body
+            int temp = nd->data;
+            nd->data = 0;
+            insert(nd->NE, nd->b, &nd->data, track);  
+            insert(nd->SE, nd->b, &nd->data, track);  
+            insert(nd->SW, nd->b, &nd->data, track); 
+            insert(nd->NW, nd->b, &nd->data, track);
         }
-            
+    }
 
-        return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 1 or 0 if 
-            insert(nd->SE, b, index, track)||  // a node is found to point the body and thus save the body at. So for example if we
-            insert(nd->SW, b, index, track)|| // have 2 bodies and the first one is always saved at root ( being empthy and not divided)
-            insert(nd->NW, b, index, track); // then the second Body 1 if it is at NW subcell after division when it goes to the return state-
+    return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 1 or 0 if 
+    insert(nd->SE, b, index, track)||  // a node is found to point the body and thus save the body at. So for example if we
+    insert(nd->SW, b, index, track)|| // have 2 bodies and the first one is always saved at root ( being empthy and not divided)
+    insert(nd->NW, b, index, track); // then the second Body 1 if it is at NW subcell after division when it goes to the return state-
         // -ment it will go through the OR terms as the contain function will not let the first 3 OR terms ( being insert(nd->NE,...) || ... 
         // to insert(nd->SW,...) and pick the insert(nd->NW,...) to assign. The same process is repeated every time the function calls itself
         // and checks for where to put the body.
-        
-        
-    }
-
-
 }
 
 /*
@@ -320,37 +329,44 @@ struct quad* Search(struct quad* root, int data) {
     Search(root->NE, data);  // Visit NE subtree
 }
 
-void xy_data_particles(struct body* bodies, int* N_PARTICLES){
+void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t){
     FILE * f; 
-    f = fopen("/home/albes/Desktop/bodiesbu.txt", "w"); /* open the file for writing*/
+    f = fopen("/home/albes/Desktop/bodiestd.txt", "w"); /* open the file for writing*/
     printf("Writting...\n");
     /* write 10 lines of text into the file stream*/    
-    fprintf(f, "N,X,Y,M,C\n");
+    fprintf(f, "N,X,Y,M,C,T\n");
 
     for(int i = 0; i < *N_PARTICLES;i++){
         fprintf (f, "%d,%f,%f,%f,%f\n", i, bodies[i].pos.x, bodies[i].pos.y, bodies[i].mass, bodies[i].charge);
     }
+    fprintf(f,",,,,,%f",t);
 
     /* close the file*/  
     fclose (f);
     printf("Closed file.\n");
 }
 
+/*
+    Helper function for xy_tree.c to print data to csv file so it can be processed later
+*/
 void printdata(struct quad* nd, FILE* f){
     if (nd == NULL){return;}
     // Display the data of the node
     fprintf(f,"%d,%f,%f,%f\n",nd->data, nd->centre.x, nd->centre.y, nd->s);
     
     // Recurse through
-    printdata(nd->NE,f);
+    printdata(nd->NE,f);    
     printdata(nd->SE,f);
     printdata(nd->SW,f);
     printdata(nd->NW,f);
 }
 
+/*
+    Function to print quad tree data into csv files
+*/
 void xy_trees(struct quad* nd){
     FILE * f; 
-    f = fopen("/home/albes/Desktop/nodesbu.txt", "w"); /* open the file for writing*/
+    f = fopen("/home/albes/Desktop/nodestd.txt", "w"); /* open the file for writing*/
     printf("Writting...\n");
     /* write 10 lines of text into the file stream*/    
     fprintf(f, "N,X,Y,S\n");
@@ -415,9 +431,24 @@ int main() {
     levelorder(root);
     te = clock();
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
-    sum(root);
-    printf("Going up the tree took: %f\n", d2);
+    // sum(root);
+    // printf("Going up the tree took: %f\n", d2);
     // deconstruct the tree
+    char c;
+    printf("Do you want to save the data? Y/n \n");
+    scanf("%c", &c);
+    
+    if(c=='Y'){
+        printf("Saving bodies data...\n");
+        xyt_data_particles(bodies,&N_PARTICLES, d);
+        printf("Saving tree data...\n");
+        xy_trees(root);
+        printf("Done\n");
+    } else
+    {
+        printf("Continuing\n");   
+    }
+
     deconstruct_tree(root);
     free(bodies);
 
