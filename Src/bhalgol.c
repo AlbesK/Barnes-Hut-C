@@ -115,7 +115,7 @@ void deconstruct_tree(struct quad* root)
         deconstruct_tree(root->SE);
         deconstruct_tree(root->SW);
         deconstruct_tree(root->NW);
-
+    
         free(root);
     }
 }
@@ -183,7 +183,7 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
         nd->b = b;
         nd->data = *index; //Assign the number of the body from the Bodies array, this is for getting back with data where the body is stored as a leaf
         // printf("Pointer to %i\n", nd->data);
-        return 0; // Found so return 1 so we can exit the recursion
+        return 0; // Found so return 0 so we can exit the recursion
     } 
     else{
     
@@ -191,11 +191,12 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
             subdivide(nd, track); // If not, subdivide!
             // Check where to put nodes body and then after the if statement check for the current index body
             int temp = nd->data;
-            nd->data = 0;
-            insert(nd->NE, nd->b, &nd->data, track);  
-            insert(nd->SE, nd->b, &nd->data, track);  
-            insert(nd->SW, nd->b, &nd->data, track); 
-            insert(nd->NW, nd->b, &nd->data, track);
+            nd->data = *track+4;
+            *track = *track-1;
+            insert(nd->NE, nd->b, &temp, track);  
+            insert(nd->SE, nd->b, &temp, track);  
+            insert(nd->SW, nd->b, &temp, track); 
+            insert(nd->NW, nd->b, &temp, track);
         }
     }
 
@@ -292,24 +293,78 @@ void levelorder(struct quad* n)
     }
 }
 
+/*
+    Assign new Pseudobody to node of quad tree
+*/
+void newBody(struct quad* nd, struct point pos, double mass, double charge)
+{
+    struct body* b = malloc(sizeof(struct body));
+    b->pos.x = pos.x;
+    b->pos.y = pos.y;
+    b->mass = mass;
+    b->charge = charge;
+    nd->b = b;
+    free(b);
+};
 
 /*
-    Deconstruct quad tree (Postorder)
+    Create Pseudobodies quad tree (Postorder)
 */ 
 void sum(struct quad* root)
 {
-    if(root != NULL)
-    {
-        sum(root->NE);
-        sum(root->SE);
-        sum(root->SW);
-        sum(root->NW);
+    if(root == NULL){return;}
 
-        if(root->b!=NULL){printf("data is: %i\n", root->data);}
+    sum(root->NE);
+    sum(root->SE);
+    sum(root->SW);
+    sum(root->NW);
 
+    double centre_x = 0; // x component of pseudobody
+    double centre_y = 0; // y component of pseudobody
+    double centre_mass = 0; // Mass of Pseudobody
+    double total_charge = 0; // extra term since we have charges!!
 
+    // if(root->b!=NULL){
+
+    printf("data is: %i\n", root->data);
+
+    if(root->NE!=NULL){
+        printf("Ok North East \n");
+        centre_mass += root->NE->b->mass;
+        centre_x += ((root->NE->b->mass)*(root->NE->b->pos.x));
+        centre_y += ((root->NE->b->mass)*(root->NE->b->pos.y));
+        total_charge += root->NE->b->charge;
     }
+    if(root->SE!=NULL){
+        printf("Ok South East \n");
+        centre_mass += root->SE->b->mass;
+        centre_x += ((root->SE->b->mass)*(root->SE->b->pos.x));
+        centre_y += ((root->SE->b->mass)*(root->SE->b->pos.y));
+        total_charge += root->SE->b->charge;
+    }
+    if(root->SW!=NULL){
+        printf("Ok South West \n");
+        centre_mass += root->SW->b->mass;
+        centre_x += ((root->SW->b->mass)*(root->SW->b->pos.x));
+        centre_y += ((root->SW->b->mass)*(root->SW->b->pos.y));
+        total_charge += root->SW->b->charge;
+    }
+    if(root->NW!=NULL){
+        printf("Ok North West \n");
+        centre_mass += root->NW->b->mass;
+        centre_x += ((root->NW->b->mass)*(root->NW->b->pos.x));
+        centre_y += ((root->NW->b->mass)*(root->NW->b->pos.y));
+        total_charge += root->NW->b->charge;
+    }
+    if(centre_mass>root->b->mass){
+        centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
+        struct point p = {.x = centre_x, .y= centre_y};
+    } 
+    
 }
+
+
+  
 
 
 /*
@@ -385,6 +440,7 @@ int main() {
     int N_PARTICLES;
     char term;
     clock_t ts, te;
+
     printf("How many particles?\n");
     if (scanf("%d%c", &N_PARTICLES, &term) != 2 || term != '\n') {
         printf("Failure: Not an integer. Try again\n");
@@ -431,7 +487,12 @@ int main() {
     levelorder(root);
     te = clock();
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
-    // sum(root);
+    
+    ts = clock();
+    sum(root);
+    te = clock();
+    double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
+
     // printf("Going up the tree took: %f\n", d2);
     // deconstruct the tree
     char c;
@@ -448,12 +509,13 @@ int main() {
     {
         printf("Continuing\n");   
     }
-
     deconstruct_tree(root);
     free(bodies);
 
     printf("Released memory succesfuly\n");
     printf("Program took %f\n", d);
+    printf("Levelorder took %f\n", d2);
+    printf("Sum took %f\n", d3);
 
     return 0; 
 }
