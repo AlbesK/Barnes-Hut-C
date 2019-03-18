@@ -113,7 +113,7 @@ void deconstruct_tree(struct quad* root)
     {
         deconstruct_tree(root->NE);
         deconstruct_tree(root->SE);
-        deconstruct_tree(root->SW);
+        deconstruct_tree(root->SW);  
         deconstruct_tree(root->NW);
     
         free(root);
@@ -128,21 +128,21 @@ void subdivide(struct quad* nd, int* track){
     if(nd == NULL){ // If there is no node do not subdive. (safety measure)
         return;
     }
-    // printf("Subdivide call at: %i \n", nd->data);
+
     // Call newNode function for each child node that was Null of the node at hand and assign a memory block of size (struct quad)
     // -n is assigned here if the node is a 'twig' meaning it is not a 'leaf' for now empty cells are also -n where n integers that
     // that are unique for each quad.
-    //    _____________________
-    //   |          |          |
-    //   |   (NW)   |   (NE)   |
-    //   |          |          |
-    //   |    -+    |    ++    |
-    //   |__________|__________|
-    //   |          |          |
-    //   |    --    |    +-    |
-    //   |          |          |
-    //   |   (SW)   |   (SE)   |
-    //   |__________|__________|
+    //    _________________________
+    //   |            |            |
+    //   |    (NW)    |    (NE)    |
+    //   |            |            |
+    //   |     -+     |     ++     |
+    //   |____________|____________|
+    //   |            |            |
+    //   |     --     |     +-     |
+    //   |            |            |
+    //   |    (SW)    |    (SE)    |
+    //   |____________|____________|
 
     nd->NE = newNode(*track-1, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y + nd->s/4); 
     nd->SE = newNode(*track-2, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y - nd->s/4); 
