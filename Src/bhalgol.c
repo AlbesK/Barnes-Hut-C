@@ -312,7 +312,7 @@ void newBody(struct quad* nd, struct point pos, double mass, double charge)
 */ 
 void sum(struct quad* root)
 {
-    if(root == NULL){return;}
+    if(root == NULL && root->b == NULL){return;}
 
     sum(root->NE);
     sum(root->SE);
@@ -330,35 +330,36 @@ void sum(struct quad* root)
 
     if(root->NE!=NULL){
         printf("Ok North East \n");
-        centre_mass += root->NE->b->mass;
-        centre_x += ((root->NE->b->mass)*(root->NE->b->pos.x));
-        centre_y += ((root->NE->b->mass)*(root->NE->b->pos.y));
-        total_charge += root->NE->b->charge;
+        // centre_mass += root->NE->b->mass;
+        // centre_x += ((root->NE->b->mass)*(root->NE->b->pos.x));
+        // centre_y += ((root->NE->b->mass)*(root->NE->b->pos.y));
+        // total_charge += root->NE->b->charge;
     }
     if(root->SE!=NULL){
-        printf("Ok South East \n");
-        centre_mass += root->SE->b->mass;
-        centre_x += ((root->SE->b->mass)*(root->SE->b->pos.x));
-        centre_y += ((root->SE->b->mass)*(root->SE->b->pos.y));
-        total_charge += root->SE->b->charge;
+        // printf("Ok South East \n");
+        // centre_mass += root->SE->b->mass;
+        // centre_x += ((root->SE->b->mass)*(root->SE->b->pos.x));
+        // centre_y += ((root->SE->b->mass)*(root->SE->b->pos.y));
+        // total_charge += root->SE->b->charge;
     }
     if(root->SW!=NULL){
         printf("Ok South West \n");
-        centre_mass += root->SW->b->mass;
-        centre_x += ((root->SW->b->mass)*(root->SW->b->pos.x));
-        centre_y += ((root->SW->b->mass)*(root->SW->b->pos.y));
-        total_charge += root->SW->b->charge;
+        // centre_mass += root->SW->b->mass;
+        // centre_x += ((root->SW->b->mass)*(root->SW->b->pos.x));
+        // centre_y += ((root->SW->b->mass)*(root->SW->b->pos.y));
+        // total_charge += root->SW->b->charge;
     }
     if(root->NW!=NULL){
         printf("Ok North West \n");
-        centre_mass += root->NW->b->mass;
-        centre_x += ((root->NW->b->mass)*(root->NW->b->pos.x));
-        centre_y += ((root->NW->b->mass)*(root->NW->b->pos.y));
-        total_charge += root->NW->b->charge;
+        // centre_mass += root->NW->b->mass;
+        // centre_x += ((root->NW->b->mass)*(root->NW->b->pos.x));
+        // centre_y += ((root->NW->b->mass)*(root->NW->b->pos.y));
+        // total_charge += root->NW->b->charge;
     }
     if(centre_mass>root->b->mass){
-        centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
-        struct point p = {.x = centre_x, .y= centre_y};
+        printf("True\n");
+        // centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
+        // struct point p = {.x = centre_x, .y= centre_y};
     } 
     
 }
@@ -489,7 +490,7 @@ int main() {
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     
     ts = clock();
-    sum(root);
+    // sum(root);
     te = clock();
     double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
 
