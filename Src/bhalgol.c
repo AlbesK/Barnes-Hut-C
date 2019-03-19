@@ -115,7 +115,7 @@ void deconstruct_tree(struct quad* root)
         deconstruct_tree(root->SE);
         deconstruct_tree(root->SW);  
         deconstruct_tree(root->NW);
-    
+        
         free(root);
     }
 }
@@ -298,29 +298,10 @@ void levelorder(struct quad* n)
 */
 void newBody(struct quad* nd, struct point pos, double mass, double charge)
 {
-    struct body* b = malloc(sizeof(struct body));
-    b->pos.x = pos.x;
-    b->pos.y = pos.y;
-    b->mass = mass;
-    b->charge = charge;
-    nd->b = b;
-    free(b);
+    struct body b = {.pos = pos, .mass= mass, .charge = charge};
+    nd->b = &b;
+    // free(b);
 };
-
-// void sum(struct quad* nd){
-//     if(nd!=NULL){
-//         sum(nd->NE);
-//         sum(nd->SE);
-//         sum(nd->SW);
-//         sum(nd->NW);
-//         double x=0;
-//         if(nd->NE!=NULL && nd->NE->b != NULL){x += nd->NE->b->mass;}
-//         if(nd->SE!=NULL && nd->SE->b != NULL){x += nd->SE->b->mass;}
-//         if(nd->SW!=NULL && nd->SW->b != NULL){x += nd->SW->b->mass;}
-//         if(nd->NW!=NULL && nd->NW->b != NULL){x += nd->NW->b->mass;}
-//         printf("Postorder data %i, x: %f\n", nd->data, x);
-//     }
-// }
 
 /*
     Create Pseudobodies quad tree (Postorder)
@@ -338,8 +319,6 @@ void sum(struct quad* nd)
     double centre_y = 0; // y component of pseudobody
     double centre_mass = 0; // Mass of Pseudobody
     double total_charge = 0; // extra term since we have charges!!
-
-    // if(nd->b!=NULL){
 
     printf("data is: %i\n", nd->data);
 
@@ -373,8 +352,10 @@ void sum(struct quad* nd)
     }
     if(centre_mass>nd->b->mass){
         printf("True\n");
-        // centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
-        // struct point p = {.x = centre_x, .y= centre_y};
+        centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
+        struct point p = {.x = centre_x, .y= centre_y};
+        printf("PMass: %f, PCharge: %f, Pxy: [%f, %f]\n", centre_mass, total_charge, centre_x, centre_y);
+        newBody(nd, p, centre_mass,  total_charge); //Assign pseudoboy
     } 
     
     }
@@ -526,6 +507,8 @@ int main() {
     {
         printf("Continuing\n");   
     }
+
+    
     deconstruct_tree(root);
     free(bodies);
 
