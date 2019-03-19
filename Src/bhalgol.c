@@ -200,7 +200,7 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
         }
     }
 
-    return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 1 or 0 if 
+    return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 0 if 
     insert(nd->SE, b, index, track)||  // a node is found to point the body and thus save the body at. So for example if we
     insert(nd->SW, b, index, track)|| // have 2 bodies and the first one is always saved at root ( being empthy and not divided)
     insert(nd->NW, b, index, track); // then the second Body 1 if it is at NW subcell after division when it goes to the return state-
@@ -312,11 +312,11 @@ void newBody(struct quad* nd, struct point pos, double mass, double charge)
 */ 
 void sum(struct quad* root)
 {
-    if(root == NULL && root->b == NULL){return;}
+    if(root == NULL){return;}
 
     sum(root->NE);
-    sum(root->SE);
-    sum(root->SW);
+    // sum(root->SE);
+    // sum(root->SW);
     sum(root->NW);
 
     double centre_x = 0; // x component of pseudobody
@@ -490,7 +490,7 @@ int main() {
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     
     ts = clock();
-    // sum(root);
+    sum(root);
     te = clock();
     double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
 
