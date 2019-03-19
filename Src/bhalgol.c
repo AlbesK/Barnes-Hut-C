@@ -325,67 +325,52 @@ void sum(struct quad* nd)
         double centre_mass = 0; // Mass of Pseudobody
         double total_charge = 0; // extra term since we have charges!!
 
-        printf("Sum recursing through: %i\n", nd->data);
+        // printf("Sum recursing through: %i\n", nd->data);
 
         if(nd->NE!=NULL && nd->NE->b != NULL){
-            // printf("Ok North East \n");
+
             centre_mass += nd->NE->b->mass;
             centre_x += ((nd->NE->b->mass)*(nd->NE->b->pos.x));
             centre_y += ((nd->NE->b->mass)*(nd->NE->b->pos.y));
             total_charge += nd->NE->b->charge;
+        
         }
         if(nd->SE!=NULL && nd->SE->b!= NULL){
-            // printf("Ok South East \n");
+        
             centre_mass += nd->SE->b->mass;
             centre_x += ((nd->SE->b->mass)*(nd->SE->b->pos.x));
             centre_y += ((nd->SE->b->mass)*(nd->SE->b->pos.y));
             total_charge += nd->SE->b->charge;
+        
         }
         if(nd->SW!=NULL && nd->SW->b != NULL){
-            // printf("Ok South West \n");
+        
             centre_mass += nd->SW->b->mass;
             centre_x += ((nd->SW->b->mass)*(nd->SW->b->pos.x));
             centre_y += ((nd->SW->b->mass)*(nd->SW->b->pos.y));
             total_charge += nd->SW->b->charge;
+        
         }
         if(nd->NW!=NULL && nd->NW->b != NULL){
-            // printf("Ok North West \n");
+        
             centre_mass += nd->NW->b->mass;
             centre_x += ((nd->NW->b->mass)*(nd->NW->b->pos.x));
             centre_y += ((nd->NW->b->mass)*(nd->NW->b->pos.y));
             total_charge += nd->NW->b->charge;
+        
         }
         if(centre_mass != 0){
-            // printf("True\n");
-            printf("Centre mass: %f Body Mass %f\n", centre_mass, nd->b->mass);
+        
+            // printf("Centre mass: %f Body Mass %f\n", centre_mass, nd->b->mass);
             centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
             struct point p = {.x = centre_x, .y= centre_y};
             // printf("PMass: %f, PCharge: %f, Pxy: [%f, %f]\n", centre_mass, total_charge, centre_x, centre_y);
             newBody(nd, p, centre_mass,  total_charge); //Assign pseudobody
+        
         } 
         
     }
-}
-
-
-void check_sum(struct quad* nd){
-    if(nd!=NULL && nd->b != NULL){
-        check_sum(nd->NE);
-        check_sum(nd->SE);
-        check_sum(nd->SW);
-        check_sum(nd->NW);
-
-        if(nd->NE !=NULL && nd->NE->b != NULL);
-        if(nd->SE !=NULL && nd->SE->b != NULL);
-        if(nd->SW !=NULL && nd->SW->b != NULL);
-        if(nd->NW !=NULL && nd->NW->b != NULL);
-
-        printf("PBody:%i:\n Mass: %f, Charge %f, Pos [%f, %f]\n", nd->data, nd->b->mass, nd->b->charge, nd->b->pos.x, nd->b->pos.y);
-    }
-}
-
-  
-
+} 
 
 /*
     Search quad tree for node with specific data in inorder format
@@ -404,6 +389,10 @@ struct quad* Search(struct quad* root, int data) {
     Search(root->NE, data);  // Visit NE subtree
 }
 
+
+/*
+    Function to save X, Y coordinates of bodies and Time taken to run build the tree
+*/
 void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t){
     FILE * f; 
     f = fopen("/home/albes/Desktop/bodiesbu.txt", "w"); /* open the file for writing*/
@@ -451,7 +440,9 @@ void xy_trees(struct quad* nd){
     printf("Closed file.\n");
 }
 
-
+/*
+    Helper Function to save the Pseudobodies data for pseudo_particles
+*/
 void pseudo_data(struct quad* nd, FILE* f){
     // Recurse through
     if(nd!=NULL){
@@ -481,6 +472,9 @@ void pseudo_data(struct quad* nd, FILE* f){
 
 }
 
+/*
+    Save the data for the Pseudobodies
+*/
 void pseudo_particles(struct quad* nd){
     FILE * f; 
     f = fopen("/home/albes/Desktop/pseudoBodiesbu.txt", "w"); /* open the file for writing*/
@@ -532,8 +526,8 @@ int main() {
             struct body b = {.mass = mass, .charge = charge, .pos = p };
 
             bodies[i] = b;
-            printf("%c:[%f], %c:[%f] \n", x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
-            printf("Mass: %f, Charge: %f\n", mass, charge);
+            // printf("%c:[%f], %c:[%f] \n", x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
+            // printf("Mass: %f, Charge: %f\n", mass, charge);
     
     }
 
@@ -549,7 +543,7 @@ int main() {
     
     // display_tree(root);
     ts = clock();
-    levelorder(root);
+    // levelorder(root);
     te = clock();
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     
@@ -557,8 +551,8 @@ int main() {
     sum(root);
     te = clock();
     double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
-    check_sum(root);
     // printf("Going up the tree took: %f\n", d2);
+
     // deconstruct the tree
     char c;
     printf("Do you want to save the data? Y/n \n");
@@ -583,8 +577,8 @@ int main() {
 
     printf("Released memory succesfuly\n");
     printf("Program took %f\n", d);
-    printf("Levelorder took %f\n", d2);
     printf("Sum took %f\n", d3);
+    printf("Levelorder took %f\n", d2);
 
     return 0; 
 }
