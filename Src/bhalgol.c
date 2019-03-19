@@ -115,7 +115,9 @@ void deconstruct_tree(struct quad* root)
         deconstruct_tree(root->SE);
         deconstruct_tree(root->SW);  
         deconstruct_tree(root->NW);
-        
+        if(root->data<0){
+            free(root->b);
+        }
         free(root);
     }
 }
@@ -298,8 +300,12 @@ void levelorder(struct quad* n)
 */
 void newBody(struct quad* nd, struct point pos, double mass, double charge)
 {
-    struct body b = {.pos = pos, .mass= mass, .charge = charge};
-    nd->b = &b;
+    struct body* b = malloc(sizeof(struct body)); //= malloc(sizeof(struct body));
+    b->pos.x = pos.x;
+    b->pos.y = pos.y;
+    b->mass = mass;
+    b->charge = charge;
+    nd->b = b;
     // free(b);
 };
 
@@ -508,9 +514,9 @@ int main() {
         printf("Continuing\n");   
     }
 
-    
-    deconstruct_tree(root);
     free(bodies);
+    free(root->b); // Since root with min 2 Bodies in it will always have a pseudobody in it, all others are at negative (<0) integers.
+    deconstruct_tree(root);
 
     printf("Released memory succesfuly\n");
     printf("Program took %f\n", d);
