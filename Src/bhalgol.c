@@ -307,61 +307,77 @@ void newBody(struct quad* nd, struct point pos, double mass, double charge)
     free(b);
 };
 
+// void sum(struct quad* nd){
+//     if(nd!=NULL){
+//         sum(nd->NE);
+//         sum(nd->SE);
+//         sum(nd->SW);
+//         sum(nd->NW);
+//         double x=0;
+//         if(nd->NE!=NULL && nd->NE->b != NULL){x += nd->NE->b->mass;}
+//         if(nd->SE!=NULL && nd->SE->b != NULL){x += nd->SE->b->mass;}
+//         if(nd->SW!=NULL && nd->SW->b != NULL){x += nd->SW->b->mass;}
+//         if(nd->NW!=NULL && nd->NW->b != NULL){x += nd->NW->b->mass;}
+//         printf("Postorder data %i, x: %f\n", nd->data, x);
+//     }
+// }
+
 /*
     Create Pseudobodies quad tree (Postorder)
 */ 
-void sum(struct quad* root)
+void sum(struct quad* nd)
 {
-    if(root == NULL){return;}
+    if(nd != NULL && nd->b != NULL){
 
-    sum(root->NE);
-    // sum(root->SE);
-    // sum(root->SW);
-    sum(root->NW);
+    sum(nd->NE);
+    sum(nd->SE);
+    sum(nd->SW);
+    sum(nd->NW);
 
     double centre_x = 0; // x component of pseudobody
     double centre_y = 0; // y component of pseudobody
     double centre_mass = 0; // Mass of Pseudobody
     double total_charge = 0; // extra term since we have charges!!
 
-    // if(root->b!=NULL){
+    // if(nd->b!=NULL){
 
-    printf("data is: %i\n", root->data);
+    printf("data is: %i\n", nd->data);
 
-    if(root->NE!=NULL){
+    if(nd->NE!=NULL && nd->NE->b != NULL){
         printf("Ok North East \n");
-        // centre_mass += root->NE->b->mass;
-        // centre_x += ((root->NE->b->mass)*(root->NE->b->pos.x));
-        // centre_y += ((root->NE->b->mass)*(root->NE->b->pos.y));
-        // total_charge += root->NE->b->charge;
+        centre_mass += nd->NE->b->mass;
+        centre_x += ((nd->NE->b->mass)*(nd->NE->b->pos.x));
+        centre_y += ((nd->NE->b->mass)*(nd->NE->b->pos.y));
+        total_charge += nd->NE->b->charge;
     }
-    if(root->SE!=NULL){
-        // printf("Ok South East \n");
-        // centre_mass += root->SE->b->mass;
-        // centre_x += ((root->SE->b->mass)*(root->SE->b->pos.x));
-        // centre_y += ((root->SE->b->mass)*(root->SE->b->pos.y));
-        // total_charge += root->SE->b->charge;
+    if(nd->SE!=NULL && nd->SE->b!= NULL){
+        printf("Ok South East \n");
+        centre_mass += nd->SE->b->mass;
+        centre_x += ((nd->SE->b->mass)*(nd->SE->b->pos.x));
+        centre_y += ((nd->SE->b->mass)*(nd->SE->b->pos.y));
+        total_charge += nd->SE->b->charge;
     }
-    if(root->SW!=NULL){
+    if(nd->SW!=NULL && nd->SW->b != NULL){
         printf("Ok South West \n");
-        // centre_mass += root->SW->b->mass;
-        // centre_x += ((root->SW->b->mass)*(root->SW->b->pos.x));
-        // centre_y += ((root->SW->b->mass)*(root->SW->b->pos.y));
-        // total_charge += root->SW->b->charge;
+        centre_mass += nd->SW->b->mass;
+        centre_x += ((nd->SW->b->mass)*(nd->SW->b->pos.x));
+        centre_y += ((nd->SW->b->mass)*(nd->SW->b->pos.y));
+        total_charge += nd->SW->b->charge;
     }
-    if(root->NW!=NULL){
+    if(nd->NW!=NULL && nd->NW->b != NULL){
         printf("Ok North West \n");
-        // centre_mass += root->NW->b->mass;
-        // centre_x += ((root->NW->b->mass)*(root->NW->b->pos.x));
-        // centre_y += ((root->NW->b->mass)*(root->NW->b->pos.y));
-        // total_charge += root->NW->b->charge;
+        centre_mass += nd->NW->b->mass;
+        centre_x += ((nd->NW->b->mass)*(nd->NW->b->pos.x));
+        centre_y += ((nd->NW->b->mass)*(nd->NW->b->pos.y));
+        total_charge += nd->NW->b->charge;
     }
-    if(centre_mass>root->b->mass){
+    if(centre_mass>nd->b->mass){
         printf("True\n");
         // centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
         // struct point p = {.x = centre_x, .y= centre_y};
     } 
     
+    }
 }
 
 
