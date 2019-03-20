@@ -113,9 +113,11 @@ void deconstruct_tree(struct quad* root)
     {
         deconstruct_tree(root->NE);
         deconstruct_tree(root->SE);
-        deconstruct_tree(root->SW);
+        deconstruct_tree(root->SW);  
         deconstruct_tree(root->NW);
-
+        if(root->data<0){
+            free(root->b);
+        }
         free(root);
     }
 }
@@ -128,21 +130,21 @@ void subdivide(struct quad* nd, int* track){
     if(nd == NULL){ // If there is no node do not subdive. (safety measure)
         return;
     }
-    // printf("Subdivide call at: %i \n", nd->data);
+
     // Call newNode function for each child node that was Null of the node at hand and assign a memory block of size (struct quad)
     // -n is assigned here if the node is a 'twig' meaning it is not a 'leaf' for now empty cells are also -n where n integers that
     // that are unique for each quad.
-    //    _____________________
-    //   |          |          |
-    //   |   (NW)   |   (NE)   |
-    //   |          |          |
-    //   |    -+    |    ++    |
-    //   |__________|__________|
-    //   |          |          |
-    //   |    --    |    +-    |
-    //   |          |          |
-    //   |   (SW)   |   (SE)   |
-    //   |__________|__________|
+    //    _________________________
+    //   |            |            |
+    //   |    (NW)    |    (NE)    |
+    //   |            |            |
+    //   |     -+     |     ++     |
+    //   |____________|____________|
+    //   |            |            |
+    //   |     --     |     +-     |
+    //   |            |            |
+    //   |    (SW)    |    (SE)    |
+    //   |____________|____________|
 
     nd->NE = newNode(*track-1, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y + nd->s/4); 
     nd->SE = newNode(*track-2, nd->s/2, nd->centre.x + nd->s/4, nd->centre.y - nd->s/4); 
@@ -183,7 +185,7 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
         nd->b = b;
         nd->data = *index; //Assign the number of the body from the Bodies array, this is for getting back with data where the body is stored as a leaf
         // printf("Pointer to %i\n", nd->data);
-        return 0; // Found so return 1 so we can exit the recursion
+        return 0; // Found so return 0 so we can exit the recursion
     } 
     else{
     
@@ -191,15 +193,16 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
             subdivide(nd, track); // If not, subdivide!
             // Check where to put nodes body and then after the if statement check for the current index body
             int temp = nd->data;
-            nd->data = 0;
-            insert(nd->NE, nd->b, &nd->data, track);  
-            insert(nd->SE, nd->b, &nd->data, track);  
-            insert(nd->SW, nd->b, &nd->data, track); 
-            insert(nd->NW, nd->b, &nd->data, track);
+            nd->data = *track+4;
+            *track = *track-1;
+            insert(nd->NE, nd->b, &temp, track);  
+            insert(nd->SE, nd->b, &temp, track);  
+            insert(nd->SW, nd->b, &temp, track); 
+            insert(nd->NW, nd->b, &temp, track);
         }
     }
 
-    return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 1 or 0 if 
+    return insert(nd->NE, b, index, track)|| // Since insert is an int function, the return statement here returns 0 if 
     insert(nd->SE, b, index, track)||  // a node is found to point the body and thus save the body at. So for example if we
     insert(nd->SW, b, index, track)|| // have 2 bodies and the first one is always saved at root ( being empthy and not divided)
     insert(nd->NW, b, index, track); // then the second Body 1 if it is at NW subcell after division when it goes to the return state-
@@ -211,7 +214,6 @@ int insert(struct quad* nd, struct body* b, int *index, int* track){
 /*
     Queue datastructure
 */
-/* helper queue for levelorder */
 struct linkedList
 {
   struct quad* data;
@@ -268,49 +270,107 @@ void levelorder(struct quad* n)
     while (!queue_empty())
     {
     
-    curr = begin->data;
-    dequeue();
-    if(curr!=NULL){
-        
-        if (curr->NE)
-            enqueue(curr->NE);
-        if (curr->SE)
-            enqueue(curr->SE);
-        if (curr->SW)
-            enqueue(curr->SW);
-        if (curr->NW)
-            enqueue(curr->NW);
-        printf("%d ",curr->data);
-    }
-    else{
-        printf("\n");
-        if(!queue_empty()){
-            enqueue(NULL);
+        curr = begin->data;
+        dequeue();
+        if(curr!=NULL){
+            
+            if (curr->NE)
+                enqueue(curr->NE);
+            if (curr->SE)
+                enqueue(curr->SE);
+            if (curr->SW)
+                enqueue(curr->SW);
+            if (curr->NW)
+                enqueue(curr->NW);
+            printf("%d ",curr->data);
         }
-    }
+        else{
+            printf("\n");
+            if(!queue_empty()){
+                enqueue(NULL);
+            }
+        }
   
     }
 }
 
+/*
+    Assign new Pseudobody to node of quad tree
+*/
+void newBody(struct quad* nd, struct point pos, double mass, double charge)
+{
+    struct body* b = malloc(sizeof(struct body)); //= malloc(sizeof(struct body));
+    b->pos.x = pos.x;
+    b->pos.y = pos.y;
+    b->mass = mass;
+    b->charge = charge;
+    nd->b = b;
+    // free(b);
+};
 
 /*
-    Deconstruct quad tree (Postorder)
+    Create Pseudobodies quad tree (Postorder)
 */ 
-void sum(struct quad* root)
+void sum(struct quad* nd)
 {
-    if(root != NULL)
-    {
-        sum(root->NE);
-        sum(root->SE);
-        sum(root->SW);
-        sum(root->NW);
+    if(nd != NULL){
 
-        if(root->b!=NULL){printf("data is: %i\n", root->data);}
+        sum(nd->NE);
+        sum(nd->SE);
+        sum(nd->SW);
+        sum(nd->NW);
 
+        double centre_x = 0; // x component of pseudobody
+        double centre_y = 0; // y component of pseudobody
+        double centre_mass = 0; // Mass of Pseudobody
+        double total_charge = 0; // extra term since we have charges!!
 
+        // printf("Sum recursing through: %i\n", nd->data);
+
+        if(nd->NE!=NULL && nd->NE->b != NULL){
+
+            centre_mass += nd->NE->b->mass;
+            centre_x += ((nd->NE->b->mass)*(nd->NE->b->pos.x));
+            centre_y += ((nd->NE->b->mass)*(nd->NE->b->pos.y));
+            total_charge += nd->NE->b->charge;
+        
+        }
+        if(nd->SE!=NULL && nd->SE->b!= NULL){
+        
+            centre_mass += nd->SE->b->mass;
+            centre_x += ((nd->SE->b->mass)*(nd->SE->b->pos.x));
+            centre_y += ((nd->SE->b->mass)*(nd->SE->b->pos.y));
+            total_charge += nd->SE->b->charge;
+        
+        }
+        if(nd->SW!=NULL && nd->SW->b != NULL){
+        
+            centre_mass += nd->SW->b->mass;
+            centre_x += ((nd->SW->b->mass)*(nd->SW->b->pos.x));
+            centre_y += ((nd->SW->b->mass)*(nd->SW->b->pos.y));
+            total_charge += nd->SW->b->charge;
+        
+        }
+        if(nd->NW!=NULL && nd->NW->b != NULL){
+        
+            centre_mass += nd->NW->b->mass;
+            centre_x += ((nd->NW->b->mass)*(nd->NW->b->pos.x));
+            centre_y += ((nd->NW->b->mass)*(nd->NW->b->pos.y));
+            total_charge += nd->NW->b->charge;
+        
+        }
+        if(centre_mass != 0){
+        
+            // printf("Centre mass: %f Body Mass %f\n", centre_mass, nd->b->mass);
+            centre_x = centre_x/ centre_mass; centre_y = centre_y/ centre_mass;
+            struct point p = {.x = centre_x, .y= centre_y};
+            // printf("PMass: %f, PCharge: %f, Pxy: [%f, %f]\n", centre_mass, total_charge, centre_x, centre_y);
+            newBody(nd, p, centre_mass,  total_charge); //Assign pseudobody
+        
+        } 
+        
     }
-}
-
+} 
 
 /*
     Search quad tree for node with specific data in inorder format
@@ -329,9 +389,72 @@ struct quad* Search(struct quad* root, int data) {
     Search(root->NE, data);  // Visit NE subtree
 }
 
+// /*
+//     Level Order Traversal for force summation ( Breadth first traversal)
+// */
+// void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
+
+//     enqueue(n); // Enqueue Root
+//     enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
+//     struct quad* curr = NULL; // Current node tracker
+    
+//     double m = 0; // Magnitude component
+//     double d[2] = {0,0}; // Vector component for force calculation
+
+//     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
+//     while (!queue_empty()) // While the queue has elements to be accessed
+//     {
+    
+//         curr = begin->data; // Save at current node the begining of the queue ( FIFO )
+//         dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
+
+//         // if(curr->data==i){dequeue(); break;}
+//         difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
+//         m = mag(d); // Magnitude of said vector for Force calculation
+
+//         printf("Data is: %d\n", curr->data);
+//         printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
+//         printf("s/d = %f\n", curr->s/m);
+
+//         if((curr->s/m)<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudoboy force only for the ith particle
+//             printf("True\n");
+//             Forces[i].x = (bodies[i].charge * curr->b->charge)/(m*m*m)*d[0];
+//             Forces[i].y = (bodies[i].charge * curr->b->charge)/(m*m*m)*d[1];
+//             printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
+//             dequeue(); // Dequeue Node 
+
+//         }
+        
+//         if(curr!=NULL){ // If Curr is not NULL the this node is pointing at has children to be added
+//             if (curr->NE)
+//                 enqueue(curr->NE);
+//             if (curr->SE)
+//                 enqueue(curr->SE);
+//             if (curr->SW)
+//                 enqueue(curr->SW);
+//             if (curr->NW)
+//                 enqueue(curr->NW);
+//             printf("%d ",curr->data);
+//         }
+//         else{ // Else it does not, thus put NULL to next reference to show where this level ends.
+//             // printf("\n");
+//             if(!queue_empty()){
+//                 enqueue(NULL);
+//             }
+//         }
+
+  
+//     }
+//     }
+// }
+
+
+/*
+    Function to save X, Y coordinates of bodies and Time taken to run build the tree
+*/
 void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t){
     FILE * f; 
-    f = fopen("/home/albes/Desktop/bodiestd.txt", "w"); /* open the file for writing*/
+    f = fopen("/home/albes/Desktop/bodiesbu.txt", "w"); /* open the file for writing*/
     printf("Writting...\n");
     /* write 10 lines of text into the file stream*/    
     fprintf(f, "N,X,Y,M,C,T\n");
@@ -366,11 +489,58 @@ void printdata(struct quad* nd, FILE* f){
 */
 void xy_trees(struct quad* nd){
     FILE * f; 
-    f = fopen("/home/albes/Desktop/nodestd.txt", "w"); /* open the file for writing*/
+    f = fopen("/home/albes/Desktop/nodesbu.txt", "w"); /* open the file for writing*/
     printf("Writting...\n");
     /* write 10 lines of text into the file stream*/    
     fprintf(f, "N,X,Y,S\n");
     printdata(nd, f);
+    /* close the file*/  
+    fclose (f);
+    printf("Closed file.\n");
+}
+
+/*
+    Helper Function to save the Pseudobodies data for pseudo_particles
+*/
+void pseudo_data(struct quad* nd, FILE* f){
+    // Recurse through
+    if(nd!=NULL){
+        
+        
+        pseudo_data(nd->NE,f);
+        pseudo_data(nd->SE,f);
+        pseudo_data(nd->SW,f);
+        pseudo_data(nd->NW,f);
+        
+        double id = 0;
+
+        if(nd->NE !=NULL && nd->NE->b != NULL)
+            id += nd->NE->b->mass;
+        if(nd->SE !=NULL && nd->SE->b != NULL)
+            id += nd->SE->b->mass;
+        if(nd->SW !=NULL && nd->SW->b != NULL)
+            id += nd->SW->b->mass;
+        if(nd->NW !=NULL && nd->NW->b != NULL)
+            id += nd->NW->b->mass;
+        if(id!=0){
+            fprintf(f,"%d,%f,%f,%f,%f,%f\n",nd->data, nd->b->pos.x, nd->b->pos.y, nd->b->mass, nd->b->charge, id);
+        }
+    }
+
+
+
+}
+
+/*
+    Save the data for the Pseudobodies
+*/
+void pseudo_particles(struct quad* nd){
+    FILE * f; 
+    f = fopen("/home/albes/Desktop/pseudoBodiesbu.txt", "w"); /* open the file for writing*/
+    printf("Writting...\n");
+    /* write 10 lines of text into the file stream*/    
+    fprintf(f, "N,PX,PY, PMass, PCharge, PMassSize\n");
+    pseudo_data(nd, f);
     /* close the file*/  
     fclose (f);
     printf("Closed file.\n");
@@ -385,6 +555,7 @@ int main() {
     int N_PARTICLES;
     char term;
     clock_t ts, te;
+
     printf("How many particles?\n");
     if (scanf("%d%c", &N_PARTICLES, &term) != 2 || term != '\n') {
         printf("Failure: Not an integer. Try again\n");
@@ -413,6 +584,7 @@ int main() {
 
             bodies[i] = b;
             // printf("%c:[%f], %c:[%f] \n", x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
+            // printf("Mass: %f, Charge: %f\n", mass, charge);
     
     }
 
@@ -421,18 +593,23 @@ int main() {
     int track = 0;
     ts = clock(); // Start timer
     for(int i=0; i<N_PARTICLES; i++){
-        insert(root, &bodies[i], &(i), &track);
+        insert(root, &bodies[i], &i, &track);
     }
     te = clock(); // End timer
     double d = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     
     // display_tree(root);
     ts = clock();
-    levelorder(root);
+    // levelorder(root);
     te = clock();
-    double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
-    // sum(root);
+    double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Level Order construction
+    
+    ts = clock();
+    sum(root);
+    te = clock();
+    double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
     // printf("Going up the tree took: %f\n", d2);
+
     // deconstruct the tree
     char c;
     printf("Do you want to save the data? Y/n \n");
@@ -443,17 +620,22 @@ int main() {
         xyt_data_particles(bodies,&N_PARTICLES, d);
         printf("Saving tree data...\n");
         xy_trees(root);
+        printf("Saving Pseudobodies data...\n");
+        pseudo_particles(root);
         printf("Done\n");
     } else
     {
         printf("Continuing\n");   
     }
 
-    deconstruct_tree(root);
     free(bodies);
+    free(root->b); // Since root with min 2 Bodies in it will always have a pseudobody in it, all others are at negative (<0) integers.
+    deconstruct_tree(root);
 
     printf("Released memory succesfuly\n");
     printf("Program took %f\n", d);
+    printf("Sum took %f\n", d3);
+    printf("Levelorder took %f\n", d2);
 
     return 0; 
 }

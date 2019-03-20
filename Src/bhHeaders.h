@@ -56,7 +56,7 @@ int count(struct quad* nd, struct body* bodies, int* N_PARTICLES, int* track);
 struct quad* Search(struct quad* root, int data);
 void levelorder(struct quad* n);
 double mag(double* d);
-void difference(struct point* p1, struct point* p2, double *d);
+void difference(struct point &p1, struct point &p2, double &d);
 void force_summation(struct quad* nd, struct body* bodies, struct point* Forces, int* N_PARTICLES);
 void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES);
 
