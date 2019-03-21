@@ -393,8 +393,10 @@ struct quad* Search(struct quad* root, int data) {
     Get Vector difference from points
 */
 void difference(struct point* p1, struct point* p2, double* d){
+    printf("d = [%f,%f]\n", d[0], d[1]);
     d[0] = p2->x - p1->x;
     d[1] = p2->y - p1->y;
+    printf("d = [%f,%f]\n", d[0], d[1]);
     // printf("P2 [%f,%f], P1 [%f,%f]\n", p2->x, p2->y, p1->x, p1->y); 
 }
 
@@ -417,27 +419,25 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
 
     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
 
+
         enqueue(n); // Enqueue Root
         enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
     
         while (!queue_empty()) // While the queue has elements to be accessed
         {
-        
+            printf("Body is %i\n", i);
             curr = begin->data; // Save at current node the begining of the queue ( FIFO )
             dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
-
+            d[0] = 0; d[1] = 0;
             // if(curr->b->mass == bodies[i].mass){ dequeue();}
             difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
             mag(&m,d); // Magnitude of said vector for Force calculation
-            if(m==0){
-                break;
-            }
 
             printf("Data is: %d\n", curr->data);
             printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
             printf("s/d = %f\n", (curr->s)/m);
 
-            if((curr->s/m)<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudoboy force only for the ith particle
+            if((curr->s/m && m!=0)<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
                 printf("True\n");
 
                 mag_cubed =  m*m*m;
@@ -445,10 +445,12 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                 Forces[i].y = (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
                 printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
                 dequeue(); // Dequeue Node 
+                curr = NULL;
 
             }
             
             if(curr!=NULL){ // If Curr is not NULL the this node is pointing at has children to be added
+                printf("Curr is not NULL\n");
                 if (curr->NE)
                     enqueue(curr->NE);
                 if (curr->SE)
@@ -457,7 +459,7 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                     enqueue(curr->SW);
                 if (curr->NW)
                     enqueue(curr->NW);
-                printf("%d ",curr->data);
+                printf("%d \n",curr->data);
             }
             else{ // Else it does not, thus put NULL to next reference to show where this level ends.
                 // printf("\n");
@@ -568,7 +570,7 @@ void pseudo_particles(struct quad* nd){
     fclose (f);
     printf("Closed file.\n");
 }
-
+   
 /*
     Main function to run the program
 */
