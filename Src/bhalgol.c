@@ -437,17 +437,28 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
             printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
             printf("s/d = %f\n", (curr->s)/m);
 
-            if((curr->s/m && m!=0)<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
+            if((curr->s)/m <=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
                 printf("True\n");
 
                 mag_cubed =  m*m*m;
-                Forces[i].x = (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
-                Forces[i].y = (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
-                printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
+                Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
+                Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
+                
                 dequeue(); // Dequeue Node 
-                curr = NULL;
+                curr = begin->data;
 
+            } else 
+            {
+                if(m!=0){
+                    printf("False\n");
+                    mag_cubed =  m*m*m;
+                    Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
+                    Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
+                    dequeue();
+                    // curr = begin->data; 
+                }
             }
+            
             
             if(curr!=NULL){ // If Curr is not NULL the this node is pointing at has children to be added
                 printf("Curr is not NULL\n");
@@ -459,14 +470,15 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                     enqueue(curr->SW);
                 if (curr->NW)
                     enqueue(curr->NW);
-                printf("%d \n",curr->data);
+                // printf("%d \n",curr->data);
             }
             else{ // Else it does not, thus put NULL to next reference to show where this level ends.
-                // printf("\n");
+                printf("Cur is NULL\n");
                 if(!queue_empty()){
                     enqueue(NULL);
                 }
             }
+            printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
 
     
         }
