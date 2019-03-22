@@ -412,76 +412,74 @@ void mag(double* m, double* d){
 */
 void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
 
-    struct quad* curr = NULL; // Current node tracker
+    struct quad* curr; // Current node tracker
     double mag_cubed = 0;
     double m = 0; // Magnitude component
     double d[2] = {0,0}; // Vector component for force calculation
 
     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
 
-
+        curr = NULL;
         enqueue(n); // Enqueue Root
         enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
     
         while (!queue_empty()) // While the queue has elements to be accessed
         {
             printf("Body is %i\n", i);
+            
             curr = begin->data; // Save at current node the begining of the queue ( FIFO )
             dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
-            d[0] = 0; d[1] = 0;
-            // if(curr->b->mass == bodies[i].mass){ dequeue();}
-            difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
-            mag(&m,d); // Magnitude of said vector for Force calculation
+            
+            d[0] = 0; d[1] = 0; m = 0;
+            if(curr!=NULL && curr->b!=NULL){
+                difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
+                mag(&m,d); // Magnitude of said vector for Force calculation
+                printf("Data is: %d\n", curr->data);
+                printf("B [%f,%f] PB [%f,%f]\n", bodies[i].pos.x, bodies[i].pos.y, curr->b->pos.x, curr->b->pos.y);
+                printf("|d|:%f, [%f,%f]\n", m, d[0], d[1]);
+                printf("s/d = %f\n", (curr->s)/m);
+            }
 
-            printf("Data is: %d\n", curr->data);
-            printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
-            printf("s/d = %f\n", (curr->s)/m);
 
-            if((curr->s)/m <=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
+
+            if(curr!=NULL && (curr->s)/m <=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
                 printf("True\n");
 
                 mag_cubed =  m*m*m;
                 Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
                 Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
                 
-                dequeue(); // Dequeue Node 
-                curr = begin->data;
 
             } else 
             {
-                if(m!=0){
-                    printf("False\n");
-                    mag_cubed =  m*m*m;
-                    Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
-                    Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
-                    dequeue();
-                    // curr = begin->data; 
+                
+                printf("False\n");
+                if(curr!=NULL){
+                    
+                    if (curr->NE)
+                        enqueue(curr->NE);
+                    if (curr->SE)
+                        enqueue(curr->SE);
+                    if (curr->SW)
+                        enqueue(curr->SW);
+                    if (curr->NW)
+                        enqueue(curr->NW);
+                    printf("Enqueue Children of %d \n",curr->data);
+                    curr = NULL;
                 }
-            }
-            
-            
-            if(curr!=NULL){ // If Curr is not NULL the this node is pointing at has children to be added
-                printf("Curr is not NULL\n");
-                if (curr->NE)
-                    enqueue(curr->NE);
-                if (curr->SE)
-                    enqueue(curr->SE);
-                if (curr->SW)
-                    enqueue(curr->SW);
-                if (curr->NW)
-                    enqueue(curr->NW);
-                // printf("%d \n",curr->data);
-            }
-            else{ // Else it does not, thus put NULL to next reference to show where this level ends.
-                printf("Cur is NULL\n");
-                if(!queue_empty()){
-                    enqueue(NULL);
+                else{
+                    printf("\n");
+                    if(!queue_empty()){
+                        enqueue(NULL);
+                    }
                 }
+
+                
             }
-            printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
 
     
         }
+        printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
     }
 }
 
