@@ -435,6 +435,8 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
     double m = 0; // Magnitude component
     double d[2] = {0,0}; // Vector component for force calculation
     int if_leaf = 0; //Check if leaf node if it has 0 children
+    int temporary_data_label = 0;
+    double k = 0;
 
     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
 
@@ -497,11 +499,18 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                 printf("if_leaf: %i\n", if_leaf);
                 if(if_leaf==0 && m!=0){
                     mag_cubed =  m*m*m;
-                    
-                    // int temporary_data_label = curr->data;
+                    printf("Distance is: %f\n", m);
 
-                    Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
-                    Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
+                    temporary_data_label = curr->data;
+
+                    k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                    printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+
+                    Forces[i].x += k*d[0];
+                    Forces[i].y += k*d[1];
+
+                    Forces[temporary_data_label].x -= Forces[i].x;
+                    Forces[temporary_data_label].y -= Forces[i].y;
                 }
                 
             }
