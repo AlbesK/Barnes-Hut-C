@@ -262,7 +262,7 @@ bool queue_empty()
 /*
     Level Order Traversal for force summation ( Breadth first traversal)
 */
-void levelorder(struct quad* n)
+void print_level_order(struct quad* n)
 {
     enqueue(n);
     enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
@@ -291,6 +291,24 @@ void levelorder(struct quad* n)
             }
         }
   
+    }
+}
+
+// Faster lever order 
+void ordertraversal(struct quad* root){
+    struct quad* curr = NULL;
+    enqueue(root);
+    
+    while(!queue_empty()){
+        curr = begin->data;
+        dequeue();
+
+        printf("%i\n", curr->data);
+        
+        if(curr->NE){ enqueue(curr->NE);}
+        if(curr->SE){ enqueue(curr->SE);}
+        if(curr->SW){ enqueue(curr->SW);}
+        if(curr->NW){ enqueue(curr->NW);}
     }
 }
 
@@ -434,15 +452,15 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
             if(curr!=NULL && curr->b!=NULL){
                 difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
                 mag(&m,d); // Magnitude of said vector for Force calculation
-                printf("Data is: %d\n", curr->data);
+                
                 printf("B [%f,%f] PB [%f,%f]\n", bodies[i].pos.x, bodies[i].pos.y, curr->b->pos.x, curr->b->pos.y);
                 printf("|d|:%f, [%f,%f]\n", m, d[0], d[1]);
                 printf("s/d = %f\n", (curr->s)/m);
+                printf("Node is: %d\n", curr->data);
+                
             }
 
-
-
-            if(curr!=NULL && (curr->s)/m <=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
+            if(curr!=NULL && (curr->s)/m <= 0.5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
                 printf("True\n");
 
                 mag_cubed =  m*m*m;
@@ -455,17 +473,25 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                 
                 printf("False\n");
                 if(curr!=NULL){
+                    // if()
+                    if(curr->data>0 && m!=0){
+                        Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
+                        Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
+                    } 
                     
-                    if (curr->NE)
-                        enqueue(curr->NE);
-                    if (curr->SE)
-                        enqueue(curr->SE);
-                    if (curr->SW)
-                        enqueue(curr->SW);
-                    if (curr->NW)
-                        enqueue(curr->NW);
-                    printf("Enqueue Children of %d \n",curr->data);
-                    curr = NULL;
+                    else{
+                    
+                        if (curr->NE && curr->NE->b!=NULL)
+                            enqueue(curr->NE);
+                        if (curr->SE && curr->SE->b!=NULL)
+                            enqueue(curr->SE);
+                        if (curr->SW && curr->SW->b!=NULL)
+                            enqueue(curr->SW);
+                        if (curr->NW && curr->NW->b!=NULL)
+                            enqueue(curr->NW);
+                        printf("Enqueue Children of %d \n",curr->data);
+                    }
+                    
                 }
                 else{
                     printf("\n");
@@ -638,7 +664,9 @@ int main() {
     
     // display_tree(root);
     ts = clock();
-    // levelorder(root);
+    print_level_order(root);
+    // printf("Faster method\n");
+    // ordertraversal(root);
     te = clock();
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Level Order construction
     
@@ -649,7 +677,7 @@ int main() {
     // printf("Going up the tree took: %f\n", d2);
 
     ts = clock();
-    levelorder_force(root, bodies, Forces, &N_PARTICLES);
+    // levelorder_force(root, bodies, Forces, &N_PARTICLES);
     te = clock();
     double d4 = (double)(te-ts)/CLOCKS_PER_SEC;
 
