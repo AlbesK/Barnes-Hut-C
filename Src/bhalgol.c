@@ -431,12 +431,11 @@ void ordertraversal(struct quad* root){
 void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
 
     struct quad* curr; // Current node tracker
-    double mag_cubed = 0;
     double m = 0; // Magnitude component
     double d[2] = {0,0}; // Vector component for force calculation
     int if_leaf = 0; //Check if leaf node if it has 0 children
     int temporary_data_label = 0;
-    double k = 0;
+    double k = 0; 
 
     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
 
@@ -467,9 +466,11 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
             if(curr->b!=NULL && (curr->s)/m <= 0.5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
                 printf("True\n");
 
-                mag_cubed =  m*m*m;
-                Forces[i].x += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[0];
-                Forces[i].y += (bodies[i].charge * curr->b->charge)/(mag_cubed)*d[1];
+                k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+
+                Forces[i].x += k*d[0];
+                Forces[i].y += k*d[1];
                 
 
             } 
@@ -498,7 +499,7 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                 printf("Enqueue Children of %d \n",curr->data);
                 printf("if_leaf: %i\n", if_leaf);
                 if(if_leaf==0 && m!=0){
-                    mag_cubed =  m*m*m;
+
                     printf("Distance is: %f\n", m);
 
                     temporary_data_label = curr->data;
