@@ -262,7 +262,7 @@ bool queue_empty()
 /*
     Level Order Traversal for force summation ( Breadth first traversal)
 */
-void levelorder(struct quad* n)
+void print_level_order(struct quad* n)
 {
     enqueue(n);
     enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
@@ -389,64 +389,138 @@ struct quad* Search(struct quad* root, int data) {
     Search(root->NE, data);  // Visit NE subtree
 }
 
-// /*
-//     Level Order Traversal for force summation ( Breadth first traversal)
-// */
-// void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
+/*
+    Get Vector difference from points
+*/
+void difference(struct point* p1, struct point* p2, double* d){
+    printf("d = [%f,%f]\n", d[0], d[1]);
+    d[0] = p2->x - p1->x;
+    d[1] = p2->y - p1->y;
+    printf("d = [%f,%f]\n", d[0], d[1]);
+    // printf("P2 [%f,%f], P1 [%f,%f]\n", p2->x, p2->y, p1->x, p1->y); 
+}
 
-//     enqueue(n); // Enqueue Root
-//     enqueue(NULL); // Extra NUll parameter for checking when the tree goes to the next level after enquing all children in one level.
-//     struct quad* curr = NULL; // Current node tracker
+/*
+    Get the magnitude of the 2D vector
+*/
+void mag(double* m, double* d){
+    *m = sqrt(d[0]*d[0]+d[1]*d[1]);
+}
+
+// Faster lever order 
+void ordertraversal(struct quad* root){
+    struct quad* curr = NULL;
+    enqueue(root);
     
-//     double m = 0; // Magnitude component
-//     double d[2] = {0,0}; // Vector component for force calculation
+    while(!queue_empty()){
+        curr = begin->data;
+        dequeue();
 
-//     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
-//     while (!queue_empty()) // While the queue has elements to be accessed
-//     {
-    
-//         curr = begin->data; // Save at current node the begining of the queue ( FIFO )
-//         dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
-
-//         // if(curr->data==i){dequeue(); break;}
-//         difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
-//         m = mag(d); // Magnitude of said vector for Force calculation
-
-//         printf("Data is: %d\n", curr->data);
-//         printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
-//         printf("s/d = %f\n", curr->s/m);
-
-//         if((curr->s/m)<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudoboy force only for the ith particle
-//             printf("True\n");
-//             Forces[i].x = (bodies[i].charge * curr->b->charge)/(m*m*m)*d[0];
-//             Forces[i].y = (bodies[i].charge * curr->b->charge)/(m*m*m)*d[1];
-//             printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
-//             dequeue(); // Dequeue Node 
-
-//         }
+        printf("%i\n", curr->data);
         
-//         if(curr!=NULL){ // If Curr is not NULL the this node is pointing at has children to be added
-//             if (curr->NE)
-//                 enqueue(curr->NE);
-//             if (curr->SE)
-//                 enqueue(curr->SE);
-//             if (curr->SW)
-//                 enqueue(curr->SW);
-//             if (curr->NW)
-//                 enqueue(curr->NW);
-//             printf("%d ",curr->data);
-//         }
-//         else{ // Else it does not, thus put NULL to next reference to show where this level ends.
-//             // printf("\n");
-//             if(!queue_empty()){
-//                 enqueue(NULL);
-//             }
-//         }
+        if(curr->NE){ enqueue(curr->NE);}
+        if(curr->SE){ enqueue(curr->SE);}
+        if(curr->SW){ enqueue(curr->SW);}
+        if(curr->NW){ enqueue(curr->NW);}
+    }
+}
 
-  
-//     }
-//     }
-// }
+/*
+    Level Order Traversal for force summation ( Breadth first traversal)
+*/
+void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
+
+    struct quad* curr; // Current node tracker
+    double m = 0; // Magnitude component
+    double d[2] = {0,0}; // Vector component for force calculation
+    int if_leaf = 0; //Check if leaf node if it has 0 children
+    int temporary_data_label = 0;
+    double k = 0; 
+
+    for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
+
+        curr = NULL;
+        enqueue(n); // Enqueue Root
+
+    
+        while (!queue_empty()) // While the queue has elements to be accessed
+        {
+            printf("Body is %i\n", i);
+            
+            curr = begin->data; // Save at current node the begining of the queue ( FIFO )
+            dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
+            
+            d[0] = 0; d[1] = 0; m = 0;
+
+            if(curr->b!=NULL){
+                difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
+                mag(&m,d); // Magnitude of said vector for Force calculation
+                
+                printf("B [%f,%f] PB [%f,%f]\n", bodies[i].pos.x, bodies[i].pos.y, curr->b->pos.x, curr->b->pos.y);
+                printf("|d|:%f, [%f,%f]\n", m, d[0], d[1]);
+                printf("s/d = %f\n", (curr->s)/m);
+                printf("Node is: %d\n", curr->data);
+                
+            }
+
+            if(curr->b!=NULL && (curr->s)/m <= 0.5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
+                printf("True\n");
+
+                k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+
+                Forces[i].x += k*d[0];
+                Forces[i].y += k*d[1];
+                
+
+            } 
+
+            if(curr->b!=NULL){
+                
+                printf("False\n");
+                if_leaf = 0;
+
+                if (curr->NE && curr->NE->b!=NULL){
+                    enqueue(curr->NE);
+                    if_leaf++;
+                }
+                if (curr->SE && curr->SE->b!=NULL){
+                    enqueue(curr->SE);
+                    if_leaf++;
+                }
+                if (curr->SW && curr->SW->b!=NULL){
+                    enqueue(curr->SW);
+                    if_leaf++;
+                }
+                if (curr->NW && curr->NW->b!=NULL){
+                    enqueue(curr->NW);
+                    if_leaf++;
+                }
+                printf("Enqueue Children of %d \n",curr->data);
+                printf("if_leaf: %i\n", if_leaf);
+                if(if_leaf==0 && m!=0){
+
+                    printf("Distance is: %f\n", m);
+
+                    temporary_data_label = curr->data;
+
+                    k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                    printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+
+                    Forces[i].x += k*d[0];
+                    Forces[i].y += k*d[1];
+
+                    // Forces[temporary_data_label].x -= k*d[0];
+                    // Forces[temporary_data_label].y -= k*d[1];
+                }
+                
+            }
+
+    
+        }
+        printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
+    }
+}
 
 
 /*
@@ -545,7 +619,7 @@ void pseudo_particles(struct quad* nd){
     fclose (f);
     printf("Closed file.\n");
 }
-
+   
 /*
     Main function to run the program
 */
@@ -568,6 +642,7 @@ int main() {
         exit(-1);
     } 
     struct body* bodies = malloc(sizeof(struct body)*N_PARTICLES);
+    struct point* Forces = malloc(sizeof(struct point)*N_PARTICLES);
 
     //Initialise values:
     char x[2]={'x', 'y'};
@@ -581,7 +656,7 @@ int main() {
             .y = 100 * ((double) rand() / (double) RAND_MAX ) - 50};
 
             struct body b = {.mass = mass, .charge = charge, .pos = p };
-
+            Forces[i].x = 0; Forces[i].y = 0;
             bodies[i] = b;
             // printf("%c:[%f], %c:[%f] \n", x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
             // printf("Mass: %f, Charge: %f\n", mass, charge);
@@ -590,7 +665,9 @@ int main() {
 
     struct quad *root = newNode(0, 100, 0, 0); //Size of s=100 and pint of reference being (0,0) equiv. to (x_root, y_root)  
     //printf("Root square size is: %f\n", root->s);
+
     int track = 0;
+
     ts = clock(); // Start timer
     for(int i=0; i<N_PARTICLES; i++){
         insert(root, &bodies[i], &i, &track);
@@ -600,7 +677,9 @@ int main() {
     
     // display_tree(root);
     ts = clock();
-    // levelorder(root);
+    print_level_order(root);
+    // printf("Faster method\n");
+    // ordertraversal(root);
     te = clock();
     double d2 = (double)(te-ts)/CLOCKS_PER_SEC; // Level Order construction
     
@@ -609,6 +688,11 @@ int main() {
     te = clock();
     double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
     // printf("Going up the tree took: %f\n", d2);
+
+    ts = clock();
+    levelorder_force(root, bodies, Forces, &N_PARTICLES);
+    te = clock();
+    double d4 = (double)(te-ts)/CLOCKS_PER_SEC;
 
     // deconstruct the tree
     char c;
@@ -629,6 +713,7 @@ int main() {
     }
 
     free(bodies);
+    free (Forces);
     free(root->b); // Since root with min 2 Bodies in it will always have a pseudobody in it, all others are at negative (<0) integers.
     deconstruct_tree(root);
 
@@ -636,6 +721,7 @@ int main() {
     printf("Program took %f\n", d);
     printf("Sum took %f\n", d3);
     printf("Levelorder took %f\n", d2);
+    printf("Force calculation took: %f\n", d4);
 
     return 0; 
 }
