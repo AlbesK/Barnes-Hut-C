@@ -509,8 +509,8 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                     Forces[i].x += k*d[0];
                     Forces[i].y += k*d[1];
 
-                    Forces[temporary_data_label].x -= Forces[i].x;
-                    Forces[temporary_data_label].y -= Forces[i].y;
+                    // Forces[temporary_data_label].x -= k*d[0];
+                    // Forces[temporary_data_label].y -= k*d[1];
                 }
                 
             }
