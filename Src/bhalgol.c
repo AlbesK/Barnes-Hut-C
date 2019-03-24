@@ -393,10 +393,10 @@ struct quad* Search(struct quad* root, int data) {
     Get Vector difference from points
 */
 void difference(struct point* p1, struct point* p2, double* d){
-    printf("d = [%f,%f]\n", d[0], d[1]);
+    // printf("d = [%f,%f]\n", d[0], d[1]);
     d[0] = p2->x - p1->x;
     d[1] = p2->y - p1->y;
-    printf("d = [%f,%f]\n", d[0], d[1]);
+    // printf("d = [%f,%f]\n", d[0], d[1]);
     // printf("P2 [%f,%f], P1 [%f,%f]\n", p2->x, p2->y, p1->x, p1->y); 
 }
 
@@ -428,7 +428,7 @@ void ordertraversal(struct quad* root){
 /*
     Level Order Traversal for force summation ( Breadth first traversal)
 */
-void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES){
+void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES, double theta){
 
     struct quad* curr; // Current node tracker
     double m = 0; // Magnitude component
@@ -445,7 +445,7 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
     
         while (!queue_empty()) // While the queue has elements to be accessed
         {
-            printf("Body is %i\n", i);
+            // printf("Body is %i\n", i);
             
             curr = begin->data; // Save at current node the begining of the queue ( FIFO )
             dequeue(); // Delete the node begin is pointing at so it moves to the next pointer
@@ -454,71 +454,72 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
 
             if(curr->b!=NULL){
                 difference(&bodies[i].pos, &curr->b->pos, d); // Find vector component between i-th Body and the Pseudobody curr is pointing at
-                mag(&m,d); // Magnitude of said vector for Force calculation
+                mag(&m,d); // Magnitude of saiparticle_datad vector for Force calculation
                 
-                printf("B [%f,%f] PB [%f,%f]\n", bodies[i].pos.x, bodies[i].pos.y, curr->b->pos.x, curr->b->pos.y);
-                printf("|d|:%f, [%f,%f]\n", m, d[0], d[1]);
-                printf("s/d = %f\n", (curr->s)/m);
-                printf("Node is: %d\n", curr->data);
+                // printf("B [%f,%f] PB [%f,%f]\n", bodies[i].pos.x, bodies[i].pos.y, curr->b->pos.x, curr->b->pos.y);
+                // printf("|d|:%f, [%f,%f]\n", m, d[0], d[1]);
+                // printf("s/d = %f\n", (curr->s)/m);
+                // printf("Node is: %d\n", curr->data);
                 
             }
 
-            if(curr->b!=NULL && (curr->s)/m <= 0.5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
-                printf("True\n");
+            if(curr->b!=NULL && (curr->s)/m <= theta){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudobody force only for the ith particle
+                // printf("True\n");
 
                 k = (bodies[i].charge * curr->b->charge)/(m*m*m);
-                printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+                // printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
 
                 Forces[i].x += k*d[0];
                 Forces[i].y += k*d[1];
                 
 
-            } 
+            } else{
 
-            if(curr->b!=NULL){
-                
-                printf("False\n");
-                if_leaf = 0;
+                if(curr->b!=NULL){
+                    
+                    // printf("False\n");
+                    if_leaf = 0;
 
-                if (curr->NE && curr->NE->b!=NULL){
-                    enqueue(curr->NE);
-                    if_leaf++;
+                    if (curr->NE && curr->NE->b!=NULL){
+                        enqueue(curr->NE);
+                        if_leaf++;
+                    }
+                    if (curr->SE && curr->SE->b!=NULL){
+                        enqueue(curr->SE);
+                        if_leaf++;
+                    }
+                    if (curr->SW && curr->SW->b!=NULL){
+                        enqueue(curr->SW);
+                        if_leaf++;
+                    }
+                    if (curr->NW && curr->NW->b!=NULL){
+                        enqueue(curr->NW);
+                        if_leaf++;
+                    }
+                    // printf("Enqueue Children of %d \n",curr->data);
+                    // printf("if_leaf: %i\n", if_leaf);
+                    if(if_leaf==0 && m!=0){
+
+                        // printf("Distance is: %f\n", m);
+
+                        temporary_data_label = curr->data;
+
+                        k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                        // printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
+
+                        Forces[i].x += k*d[0];
+                        Forces[i].y += k*d[1];
+
+                        // Forces[temporary_data_label].x -= k*d[0];
+                        // Forces[temporary_data_label].y -= k*d[1];
+                    }
+                    
                 }
-                if (curr->SE && curr->SE->b!=NULL){
-                    enqueue(curr->SE);
-                    if_leaf++;
-                }
-                if (curr->SW && curr->SW->b!=NULL){
-                    enqueue(curr->SW);
-                    if_leaf++;
-                }
-                if (curr->NW && curr->NW->b!=NULL){
-                    enqueue(curr->NW);
-                    if_leaf++;
-                }
-                printf("Enqueue Children of %d \n",curr->data);
-                printf("if_leaf: %i\n", if_leaf);
-                if(if_leaf==0 && m!=0){
-
-                    printf("Distance is: %f\n", m);
-
-                    temporary_data_label = curr->data;
-
-                    k = (bodies[i].charge * curr->b->charge)/(m*m*m);
-                    printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
-
-                    Forces[i].x += k*d[0];
-                    Forces[i].y += k*d[1];
-
-                    // Forces[temporary_data_label].x -= k*d[0];
-                    // Forces[temporary_data_label].y -= k*d[1];
-                }
-                
             }
 
     
         }
-        printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
+        // printf("TF_[%i] = [%f,%f] \n", i,Forces[i].x, Forces[i].y);
     }
 }
 
@@ -526,17 +527,17 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
 /*
     Function to save X, Y coordinates of bodies and Time taken to run build the tree
 */
-void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t){
+void particle_data(struct body* bodies, struct point* Forces, int* N_PARTICLES, double t, double t2, double theta){
     FILE * f; 
     f = fopen("/home/albes/Desktop/bodiesbu.txt", "w"); /* open the file for writing*/
     printf("Writting...\n");
     /* write 10 lines of text into the file stream*/    
-    fprintf(f, "N,X,Y,M,C,T\n");
+    fprintf(f, "N,X,Y,M,C,Fx,Fy,TBuilt,TForce\n");
 
     for(int i = 0; i < *N_PARTICLES;i++){
-        fprintf (f, "%d,%f,%f,%f,%f\n", i, bodies[i].pos.x, bodies[i].pos.y, bodies[i].mass, bodies[i].charge);
+        fprintf (f, "%d,%f,%f,%f,%f,%f,%f\n", i, bodies[i].pos.x, bodies[i].pos.y, bodies[i].mass, bodies[i].charge, Forces[i].x, Forces[i].y);
     }
-    fprintf(f,",,,,,%f",t);
+    fprintf(f,",,,,,,,%f,%f,%f",t, t2, theta);
 
     /* close the file*/  
     fclose (f);
@@ -601,8 +602,6 @@ void pseudo_data(struct quad* nd, FILE* f){
         }
     }
 
-
-
 }
 
 /*
@@ -629,6 +628,7 @@ int main() {
     int N_PARTICLES;
     char term;
     clock_t ts, te;
+    double theta = 0.5;
 
     printf("How many particles?\n");
     if (scanf("%d%c", &N_PARTICLES, &term) != 2 || term != '\n') {
@@ -677,7 +677,7 @@ int main() {
     
     // display_tree(root);
     ts = clock();
-    print_level_order(root);
+    // print_level_order(root);
     // printf("Faster method\n");
     // ordertraversal(root);
     te = clock();
@@ -688,9 +688,9 @@ int main() {
     te = clock();
     double d3 = (double)(te-ts)/CLOCKS_PER_SEC;
     // printf("Going up the tree took: %f\n", d2);
-
+    
     ts = clock();
-    levelorder_force(root, bodies, Forces, &N_PARTICLES);
+    levelorder_force(root, bodies, Forces, &N_PARTICLES, theta);
     te = clock();
     double d4 = (double)(te-ts)/CLOCKS_PER_SEC;
 
@@ -701,7 +701,7 @@ int main() {
     
     if(c=='Y'){
         printf("Saving bodies data...\n");
-        xyt_data_particles(bodies,&N_PARTICLES, d);
+        particle_data(bodies, Forces, &N_PARTICLES, d, d4, theta);
         printf("Saving tree data...\n");
         xy_trees(root);
         printf("Saving Pseudobodies data...\n");
