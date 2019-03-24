@@ -641,6 +641,7 @@ int main() {
         printf("Insufficent number of particles %i\n", N_PARTICLES);
         exit(-1);
     } 
+
     struct body* bodies = malloc(sizeof(struct body)*N_PARTICLES);
     struct point* Forces = malloc(sizeof(struct point)*N_PARTICLES);
 
