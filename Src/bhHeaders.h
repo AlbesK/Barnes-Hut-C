@@ -55,12 +55,12 @@ int insert(struct quad* nd, struct body* b, int *index);
 int count(struct quad* nd, struct body* bodies, int* N_PARTICLES, int* track);
 struct quad* Search(struct quad* root, int data);
 void levelorder(struct quad* n);
-double mag(double* d);
-void difference(struct point &p1, struct point &p2, double &d);
+void mag(double* m,double* d);
+void difference(struct point* p1, struct point* p2, double* d);
 void force_summation(struct quad* nd, struct body* bodies, struct point* Forces, int* N_PARTICLES);
-void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES);
+void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES, double theta);
 
-void xyt_data_particles(struct body* bodies, int* N_PARTICLES, double t);
+void xyt_data_particles(struct body* bodies, struct point* Forces,  int* N_PARTICLES, double t);
 void printdata(struct quad* nd, FILE* f);
 void xy_trees(struct quad* nd);
 

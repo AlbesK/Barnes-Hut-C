@@ -51,7 +51,7 @@ int count(struct quad* nd, struct body* bodies, int* N_PARTICLES, int* track){
             struct point p = {.x = centre_x, .y= centre_y};
             newBody(nd, p, centre_mass,  total_charge); //Assign pseudoboy
             // free(pseudobody);
-            printf("Pseudobody [%f,%f] at %i\n", centre_x,centre_y, nd->data);
+            // printf("Pseudobody [%f,%f] at %i\n", centre_x,centre_y, nd->data);
         
             subdivide(nd, track);
             }

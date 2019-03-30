@@ -10,7 +10,7 @@ void force_summation(struct quad* nd, struct body* bodies, struct point* Forces,
     double m;
     for(int i=0; i<*N_PARTICLES; i++){
         difference(&bodies[i].pos, &nd->b->pos, d);
-        m = mag(d);
+        mag(&m,d);
         printf("|d|:%f, [%f,%f]\n",m,d[0],d[1]);
         printf("s/d = %f\n", nd->s/m);
         if(nd->s/m<=5){ // s/d=θ Barnes-Hut threshold! If its less or equal keep pseudoboy force only for the ith particle

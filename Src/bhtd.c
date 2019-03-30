@@ -13,7 +13,7 @@
 int main() {
 
     int N_DIMENSIONS = 2; int seed=1;
-    int N_PARTICLES;
+    int N_PARTICLES; double theta = 0.5;
     char term;
     clock_t ts, te;
     printf("How many particles?\n");
@@ -44,7 +44,7 @@ int main() {
             struct body b = {.mass = mass, .charge = charge, .pos = p };
             Forces[i].x = 0; Forces[i].y = 0;
             bodies[i] = b;
-            printf("%d: %c:[%f], %c:[%f] \n",i, x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
+            // printf("%d: %c:[%f], %c:[%f] \n",i, x[0], bodies[i].pos.x, x[1], bodies[i].pos.y );
     
     }
 
@@ -57,8 +57,11 @@ int main() {
     te = clock(); // End timer
     double t = (double)(te-ts)/CLOCKS_PER_SEC; // Bottom-up tree construction time
     printf("Checking queue\n");
-    levelorder(root);
-    levelorder_force(root, bodies, Forces, &N_PARTICLES);
+    // levelorder(root);
+    ts = clock();
+    levelorder_force(root, bodies, Forces, &N_PARTICLES, theta);
+    te = clock(); // End timer
+    double t2 = (double)(te-ts)/CLOCKS_PER_SEC;
     // display_tree(root);
     // force_summation(root,bodies, Forces, &N_PARTICLES);
     // check(root);
@@ -68,7 +71,7 @@ int main() {
     
     if(c=='Y'){
         printf("Saving bodies data...\n");
-        xyt_data_particles(bodies,&N_PARTICLES, t);
+        xyt_data_particles(bodies, Forces, &N_PARTICLES, t);
         printf("Saving tree data...\n");
         xy_trees(root);
         printf("Done\n");
@@ -84,7 +87,8 @@ int main() {
     free(Forces);
 
     printf("Released memory succesfuly\n");
-    printf("Program took %f\n", t);
+    printf("Building tree top down took: %f\n", t);
+    printf("Force calculation top down took: %f\n", t2);
 
     return 0; 
 }

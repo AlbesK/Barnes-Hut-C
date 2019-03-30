@@ -5,7 +5,6 @@
 /*
     Get the magnitude of the 2D vector
 */
-double mag(double* d){
-    double m = sqrt(d[0]*d[0]+d[1]*d[1]);
-    return m;
+void mag(double* m, double* d){
+    *m = sqrt(d[0]*d[0]+d[1]*d[1]);
 }

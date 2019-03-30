@@ -428,14 +428,14 @@ void ordertraversal(struct quad* root){
 /*
     Level Order Traversal for force summation ( Breadth first traversal)
 */
-void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, int* N_PARTICLES, double theta){
+void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces, double *Potentials, int* N_PARTICLES, double theta){
 
     struct quad* curr; // Current node tracker
     double m = 0; // Magnitude component
     double d[2] = {0,0}; // Vector component for force calculation
     int if_leaf = 0; //Check if leaf node if it has 0 children
     int temporary_data_label = 0;
-    double k = 0; 
+    double k, k2 = 0; 
 
     for(int i=0; i<*N_PARTICLES; i++){ // For all particles loop
 
@@ -467,11 +467,14 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                 // printf("True\n");
 
                 k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                k2 = (bodies[i].charge * curr->b->charge);
+
                 // printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
 
                 Forces[i].x += k*d[0];
                 Forces[i].y += k*d[1];
                 
+                Potentials[i] += k2/m;
 
             } else{
 
@@ -505,10 +508,13 @@ void levelorder_force(struct quad* n, struct body* bodies, struct point *Forces,
                         temporary_data_label = curr->data;
 
                         k = (bodies[i].charge * curr->b->charge)/(m*m*m);
+                        k2 = (bodies[i].charge * curr->b->charge);
                         // printf("k: %f\n", k); printf("d[0]: %f\n", d[0]);  printf("d[1]: %f\n", d[1]);
 
                         Forces[i].x += k*d[0];
                         Forces[i].y += k*d[1];
+
+                        Potentials[i] += k2/m;
 
                         // Forces[temporary_data_label].x -= k*d[0];
                         // Forces[temporary_data_label].y -= k*d[1];
@@ -644,6 +650,7 @@ int main() {
 
     struct body* bodies = malloc(sizeof(struct body)*N_PARTICLES);
     struct point* Forces = malloc(sizeof(struct point)*N_PARTICLES);
+    double* Potentials = malloc(sizeof(double)*N_PARTICLES);
 
     //Initialise values:
     char x[2]={'x', 'y'};
@@ -691,7 +698,7 @@ int main() {
     // printf("Going up the tree took: %f\n", d2);
     
     ts = clock();
-    levelorder_force(root, bodies, Forces, &N_PARTICLES, theta);
+    levelorder_force(root, bodies, Forces, Potentials, &N_PARTICLES, theta);
     te = clock();
     double d4 = (double)(te-ts)/CLOCKS_PER_SEC;
 
@@ -714,7 +721,8 @@ int main() {
     }
 
     free(bodies);
-    free (Forces);
+    free(Forces);
+    free(Potentials);
     free(root->b); // Since root with min 2 Bodies in it will always have a pseudobody in it, all others are at negative (<0) integers.
     deconstruct_tree(root);
 
