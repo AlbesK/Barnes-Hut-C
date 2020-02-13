@@ -18,6 +18,6 @@ Just compile the file bhalgol.c and execute the output.
 
 ## Memory check:
 
-if you have valgrind installed to check efficiency of this build in heap by typing:
+if you have [valgrind](https://valgrind.org/) installed to check efficiency of this build in heap by typing:
 
 "valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./td"
