@@ -7,13 +7,17 @@ Second numerical method used for my dissertation on accelerating the force calcu
 
 
 # Usage
-
+## Top-Down:
 After cloning, to compile type in terminal "make -f bhmakefile"
 
-then run "./td" or if you have valgrind installed to check efficiency of this build in heap by typing:
+then run "./td" 
+
+## Bottom-up:
+
+Just compile the file bhalgol.c and execute the output.
+
+## Memory check:
+
+if you have valgrind installed to check efficiency of this build in heap by typing:
 
 "valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./td"
-
-or bhalgol.c which contains the bottom-up approach.
-
-
