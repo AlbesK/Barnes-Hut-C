@@ -1,7 +1,7 @@
 # Barnes-Hut-C
 Barnes-Hut algorithm for C. It contains both top-down and bottom-up approaches.
 
-Second numerical method used for my dissertation on accelerating the force calcuation for a cloud of electric charges with standard particle-particle model giving O(n<sup>2</sup>) to O(nlogn).
+Second numerical method used for my dissertation on accelerating the force calcuation for a cloud of electric charges with standard particle-particle model from complexity O(n<sup>2</sup>) to O(nlogn).
 
 [More on the theory here](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation)
 
