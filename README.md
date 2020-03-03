@@ -11,7 +11,7 @@ After subdivision the particles are aggregated accordingly to the squares they r
 
 <img src="https://github.com/AlbesK/Barnes-Hut-C/blob/master/images/BU30PB.png" alt="Pseudobodies in quad trees" class="center" width=80%/>
 
-These Pseudo-particles are nothing more but an abstract representation of the lump of particles they encompass.
+These Pseudo-particles are nothing more but an abstract representation of the lump of particles they encompass. The green pseudo-particle shown in the above figure represents the root level sum of the 30 particles in the system. Sizes are for qualitative purposes only to show the aggregation process.
 
 Then by using a threshold in the force calculation as shown below of s/d=&theta;, where s is the size of the square and d is the distance apart from the real particle and the pseudo-particle, we can pick &theta; as any value but usually picked with values between 0 and 1[2,3] that if the value for one body in the force calculation is less than the threshold then the force calculation is only summing the contribution of the pseudo-body's (PB) effect on the current body.
 
